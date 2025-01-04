@@ -1,0 +1,38 @@
+{
+  "pizzas": [
+    {
+      "name": "Margherita",
+      "imagesrc": "https://cdn.shopify.com/s/files/1/0274/9503/9079/files/20220211142754-margherita-9920_5a73220e-4a1a-4d33-b38f-26e98e3cd986.jpg?v=1723650067",
+      "price": 8.99,
+      "ingredients": ["Tomato Sauce", "Mozzarella", "Basil"],
+      "soldout": false
+    },
+    {
+      "name": "Pepperoni",
+      "imagesrc": "https://atsloanestable.com/wp-content/uploads/2023/06/new-york-style-pizza2.jpg",
+      "price": 10.99,
+      "ingredients": ["Tomato Sauce", "Mozzarella", "Pepperoni"],
+      "soldout": false
+    },
+    {
+      "name": "BBQ Chicken",
+      "imagesrc": "https://breadboozebacon.com/wp-content/uploads/2023/05/BBQ-Chicken-Pizza-SQUARE.jpg",
+      "price": 12.49,
+      "ingredients": ["BBQ Sauce", "Grilled Chicken", "Red Onions", "Cilantro"],
+      "soldout": true
+    },
+    {
+      "name": "Veggie Delight",
+      "imagesrc": "https://images.mrcook.app/recipe-image/018f596e-4433-7505-9a03-1180c29397fb",
+      "price": 9.99,
+      "ingredients": [
+        "Tomato Sauce",
+        "Mozzarella",
+        "Bell Peppers",
+        "Olives",
+        "Mushrooms"
+      ],
+      "soldout": false
+    }
+  ]
+}
