@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
 export default function UserPizzas() {
   return (
@@ -33,7 +34,7 @@ function CustomPizzas() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {customPizza ? (
           customPizza.map((pizza, idx) => (
-            <RenderCustomPizza pizza={pizza} key={idx} pizza_id={pizza._id} />
+            <RenderCustomPizza pizza={pizza} key={idx} />
           ))
         ) : (
           <p className="text-center text-gray-600">
@@ -45,7 +46,33 @@ function CustomPizzas() {
   );
 }
 
-function RenderCustomPizza({ pizza, pizza_id }) {
+function RenderCustomPizza({ pizza }) {
+  const navigate = useNavigate();
+
+  function handleEditPizza(id) {
+    navigate(`/editPizza/${id}`);
+  }
+
+  async function handleDeletePizza(id) {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/pizzas/deletePizza/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const result = await res.json();
+      console.log(result);
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while deleting the pizza.");
+    } finally {
+      setTimeout(() => {
+        navigate("/"); //redirect to home route
+      }, 1000);
+    }
+  }
+
   return (
     <div className="flex flex-col items-center justify-center border border-gray-300 shadow-md rounded-lg p-4 bg-white">
       <p className="text-lg font-bold mb-2">{pizza.name}</p>
@@ -58,9 +85,21 @@ function RenderCustomPizza({ pizza, pizza_id }) {
           alt={`${pizza.name} image`}
         />
       )}
-      <button className="border-2 mt-5 w-[5vw] hover:scale-105 font-semibold text-l border-black rounded-full bg-red-500">
-        Remove
-      </button>
+      <div className="flex items-center justify-center space-x-5">
+        <button
+          onClick={() => handleEditPizza(pizza._id)}
+          className="border-2 mt-5 w-[5vw] hover:scale-105 font-semibold text-l border-black rounded-full bg-blue-500"
+        >
+          Edit
+        </button>
+
+        <button
+          onClick={() => handleDeletePizza(pizza._id)}
+          className="border-2 mt-5 w-[5vw] hover:scale-105 font-semibold text-l border-black rounded-full bg-red-500"
+        >
+          Remove
+        </button>
+      </div>
     </div>
   );
 }
