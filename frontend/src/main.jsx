@@ -7,7 +7,7 @@ import AddNewPizza from "./components/AddNewPizza.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import UserPizzas from "./components/UserPizzas.jsx";
 import EditForm from "./components/EditForm.jsx";
-
+import Register from "./components/Register.jsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -24,6 +24,10 @@ const router = createBrowserRouter([
   {
     path: "/editPizza/:id",
     element: <EditForm></EditForm>,
+  },
+  {
+    path: "/register",
+    element: <Register></Register>,
   },
 ]);
 
