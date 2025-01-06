@@ -1,12 +1,22 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
 
+//
 const cors = require("cors");
 const pizzas = require("./pizzas.json");
 const Pizza = require("./connection");
+const User = require("./user"); //user schema for authentication
+const { setUser, getUser } = require("./services/auth");
 
 const app = express();
-app.use(cors());
+// app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Your frontend's origin
+    credentials: true, // Allow sending and receiving cookies
+  })
+);
 
 //middleware
 app.use(express.json());
@@ -115,12 +125,69 @@ app.put("/editPizza/:id", async (req, res) => {
     res.status(400).json({ message: "Pizzaa update in the Db failed " });
   }
 
+  res.status(200).json({
+    message: "Pizza updated successfully",
+    Updated_pizza: updatedPizza,
+  });
+});
+
+//for authentication -> register route
+
+app.post("/register", async (req, res) => {
+  const { name, email, password } = req.body;
+  // console.log(name, email, password);
+
+  if (!name || !email || !password) {
+    //user form data validation
+    return res.status(400).json({ message: "All fields are required." });
+  }
+
+  const createdUser = await User.create({
+    //create user
+    name,
+    email,
+    password,
+  });
+
+  if (!createdUser) {
+    console.error("Failed to create the user in the DB");
+    res.status(400).json({ message: "Failed to create the user in the DB" });
+  }
+
+  res.status(200).json({ message: "Successfully created the  user in the DB" });
+});
+
+//user login route ->user enter email,pswd and the route looks for the user in the Db
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  console.log(email, password);
+
+  if (!email || !password)
+    return res
+      .status(400)
+      .json({ message: "All fields are required for LoggingIn." });
+
+  const loggedUser = await User.findOne({ email, password });
+
+  if (!loggedUser) {
+    console.error("Failed to fetch the user from the DB");
+    res.status(400).json({ message: "User does nt exsist in the DB" });
+  }
+
+  console.log(loggedUser);
+
+  //create a session Id using uuid package
+  const sessionId = uuidv4();
+  console.log(sessionId);
+  setUser(sessionId, loggedUser); //map user and session id
+  res.cookie("uid", sessionId); //create a cookie for storing it to the server
+
   res
     .status(200)
-    .json({
-      message: "Pizza updated successfully",
-      Updated_pizza: updatedPizza,
-    });
+    .json({ message: "User Successfully LoggedIn ", loggedUser: loggedUser });
+
+  // res.redirect("/userPizza");
 });
 
 //run server

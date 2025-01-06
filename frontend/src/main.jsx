@@ -8,6 +8,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import UserPizzas from "./components/UserPizzas.jsx";
 import EditForm from "./components/EditForm.jsx";
 import Register from "./components/Register.jsx";
+import Login from "./components/Login.jsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <Register></Register>,
+  },
+  {
+    path: "/login",
+    element: <Login></Login>,
   },
 ]);
 

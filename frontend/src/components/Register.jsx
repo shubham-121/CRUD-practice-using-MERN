@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 
 export default function Register() {
   return (
     <div>
       <p className="text-center font-semibold text-xl mt-5">
-        Register/Login to our site
+        Register to our site
       </p>
       <RegisterForm></RegisterForm>
     </div>
@@ -12,6 +13,7 @@ export default function Register() {
 }
 
 function RegisterForm() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -33,7 +35,6 @@ function RegisterForm() {
 
     const res = await fetch("http://localhost:5000/register", {
       method: "POST",
-
       headers: {
         "Content-Type": "application/json",
       },
@@ -45,6 +46,13 @@ function RegisterForm() {
     if (!data) alert("Error in sending the registering data to backend");
 
     alert("Register form data sent successfully");
+    // navigate("/");
+    setFormData({
+      //reset fields
+      name: "",
+      email: "",
+      password: "",
+    });
   }
 
   return (

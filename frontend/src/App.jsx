@@ -7,12 +7,21 @@ export default function App() {
   const navigate = useNavigate();
   return (
     <div>
-      <button
-        onClick={() => navigate("/register")}
-        className="border-2 border-black w-[7vw] h-[5vh] mt-2 rounded-full bg-gray-500 relative left-[90%]"
-      >
-        Register
-      </button>
+      <div className="mt-2 flex justify-end items-end space-x-3">
+        <button
+          onClick={() => navigate("/register")}
+          className="border-2 border-black w-[7vw] h-[5vh] mt-2 rounded-full bg-gray-500 "
+        >
+          Register
+        </button>
+        <button
+          onClick={() => navigate("/login")}
+          className="border-2 border-black w-[7vw] h-[5vh] mt-2 rounded-full bg-gray-500 "
+        >
+          Login
+        </button>
+      </div>
+
       <h1 className="text-stone-800 text-center font-semibold text-xl ">
         Pizzas Website
       </h1>
