@@ -6,7 +6,7 @@ import "./index.css";
 export default function App() {
   const navigate = useNavigate();
   return (
-    <div>
+    <div className="bg-stone-400">
       <div className="mt-2 flex justify-end items-end space-x-3">
         <button
           onClick={() => navigate("/register")}

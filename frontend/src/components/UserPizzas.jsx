@@ -11,11 +11,19 @@ export default function UserPizzas() {
 }
 
 function CustomPizzas() {
+  const token = localStorage.getItem("access_token");
   const [customPizza, setCustomPizza] = useState();
 
   useEffect(() => {
     async function getCustomPizza() {
-      const res = await fetch("http://localhost:5000/pizzas/userPizza");
+      const res = await fetch("http://localhost:5000/pizzas/userPizza", {
+        method: "GET",
+        headers: {
+          //prettier-ignore
+          "Authorization": `Bearer ${token}`, // Add token to the Authorization header
+          "Content-Type": "application/json",
+        },
+      });
       const data = await res.json();
 
       if (data) {

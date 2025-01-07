@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
+const jwt = require("jsonwebtoken");
 
 //
 const cors = require("cors");
@@ -8,6 +9,7 @@ const pizzas = require("./pizzas.json");
 const Pizza = require("./connection");
 const User = require("./user"); //user schema for authentication
 const { setUser, getUser } = require("./services/auth");
+const SECRET_KEY = "Shubham@123@";
 
 const app = express();
 // app.use(cors());
@@ -58,16 +60,16 @@ app.post("/addNewPizza", async (req, res) => {
 });
 
 //read custom piiza from DB
-app.get("/pizzas/userPizza", async (req, res) => {
-  const db_pizzas = await Pizza.find({});
+// app.get("/pizzas/userPizza", authenticationToken, async (req, res) => {
+//   const db_pizzas = await Pizza.find({});
 
-  if (!db_pizzas)
-    res.status(404).json({ message: "No Custom pizzas available in the DB" });
+//   if (!db_pizzas)
+//     res.status(404).json({ message: "No Custom pizzas available in the DB" });
 
-  res
-    .status(200)
-    .json({ message: "Custom pizzas sended", db_pizzas: db_pizzas });
-});
+//   res
+//     .status(200)
+//     .json({ message: "Custom pizzas sended", db_pizzas: db_pizzas });
+// });
 
 //delet custom pizza from db
 
@@ -158,6 +160,82 @@ app.post("/register", async (req, res) => {
 });
 
 //user login route ->user enter email,pswd and the route looks for the user in the Db
+// 1- using statefull auth
+// app.post("/login", async (req, res) => {
+//   const { email, password } = req.body;
+
+//   console.log(email, password);
+
+//   if (!email || !password)
+//     return res
+//       .status(400)
+//       .json({ message: "All fields are required for LoggingIn." });
+
+//   const loggedUser = await User.findOne({ email, password });
+
+//   if (!loggedUser) {
+//     console.error("Failed to fetch the user from the DB");
+//     res.status(400).json({ message: "User does nt exsist in the DB" });
+//   }
+
+//   console.log(loggedUser);
+
+//   //create a session Id using uuid package
+//   const sessionId = uuidv4();
+//   console.log(sessionId);
+//   setUser(sessionId, loggedUser); //map user and session id
+//   res.cookie("uid", sessionId); //create a cookie for storing it to the server
+
+//   res
+//     .status(200)
+//     .json({ message: "User Successfully LoggedIn ", loggedUser: loggedUser });
+
+//   // res.redirect("/userPizza");
+// });
+
+// 2- using jwt auth
+//read custom piiza from DB (delete this since it is also above, this one is for practice only)
+app.get("/pizzas/userPizza", authenticationToken, async (req, res) => {
+  const db_pizzas = await Pizza.find({});
+
+  if (!db_pizzas)
+    res.status(404).json({ message: "No Custom pizzas available in the DB" });
+
+  res
+    .status(200)
+    .json({ message: "Custom pizzas sended", db_pizzas: db_pizzas });
+});
+
+//till here delete this
+
+//middleware for authenticating the jwt token
+function authenticationToken(req, res, next) {
+  const { authorization: authHeader } = req.headers; //get the jwt token from frontend. It is format: "Bearer YOUR_JWT_TOKEN"
+  if (!authHeader) {
+    return res.status(401).json({ message: "Authorization header missing" });
+  }
+  console.log("This is the authHeader-> \n", authHeader);
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Token missing" });
+  }
+  console.log("This is the token->", token);
+
+  //verify the jwt token using  the secret key:
+  jwt.verify(token, SECRET_KEY, (err, data) => {
+    if (err) {
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
+
+    //if auth sucessfull, attach data to the request
+    req.user = data;
+    console.log("\n This is the decoded data -> ", data);
+
+    next();
+  });
+}
+
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -177,17 +255,19 @@ app.post("/login", async (req, res) => {
 
   console.log(loggedUser);
 
-  //create a session Id using uuid package
-  const sessionId = uuidv4();
-  console.log(sessionId);
-  setUser(sessionId, loggedUser); //map user and session id
-  res.cookie("uid", sessionId); //create a cookie for storing it to the server
+  const userObj = {
+    name: loggedUser.name,
+    email: loggedUser.email,
+    password: loggedUser.password,
+  };
 
-  res
-    .status(200)
-    .json({ message: "User Successfully LoggedIn ", loggedUser: loggedUser });
+  //jwt in action
+  const access_token = jwt.sign(userObj, SECRET_KEY);
 
-  // res.redirect("/userPizza");
+  res.json({
+    message: " the access token received",
+    access_token: access_token,
+  });
 });
 
 //run server
@@ -195,3 +275,5 @@ const PORT = 5000;
 app.listen(PORT, () => {
   console.log("Backend Server is running at Port:", PORT);
 });
+
+//EV933617121IN DEGREE NO

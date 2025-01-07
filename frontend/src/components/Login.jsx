@@ -19,23 +19,6 @@ function LogInForm() {
     password: "",
   });
 
-  //   useEffect(() => {
-  //     async function fetchLoggedInUser() {
-  //       const res = await fetch("http://localhost:5000/login");
-  //       const userExsist = await res.json();
-
-  //       if (!userExsist) {
-  //         console.error("No user exsists");
-  //         alert("No user exsists");
-  //       }
-
-  //       setLoggeduser(userExsist);
-  //       navigate("/userPizza");
-  //     }
-
-  //     fetchLoggedInUser();
-  //   }, [navigate]);
-
   function handleFormChange(e) {
     const { name, value } = e.target;
     console.log(name, value);
@@ -62,17 +45,19 @@ function LogInForm() {
 
     if (!loggedUser) alert("Error in logging in the user");
 
-    console.log(loggedUser);
+    console.log("Logged User details", loggedUser);
 
-    alert("login data sent successfully");
-    navigate("/userPizza");
-    // navigate("/");
-    // setFormData({
-    //   //reset fields
-    //   name: "",
-    //   email: "",
-    //   password: "",
-    // });
+    //set the access token to local storage
+
+    if (loggedUser.access_token) {
+      localStorage.setItem("access_token", loggedUser.access_token);
+      alert(
+        "login data sent successfully, access token also set to local storage"
+      );
+      navigate("/userPizza");
+    } else {
+      alert("Login failed: No access token provided.");
+    }
   }
 
   return (
