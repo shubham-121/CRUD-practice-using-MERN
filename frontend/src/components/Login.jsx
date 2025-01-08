@@ -1,10 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 
 export default function Login() {
+  const navigate = useNavigate();
   return (
     <div>
-      <p className="text-center font-semibold text-xl ">LogIn Page</p>
+      <button
+        className="w-[100px] h-[40px] border-2 border-black rounded-full bg-stone-400 fixed right-[5%] "
+        onClick={() => navigate("/register")}
+      >
+        Register
+      </button>
+      <p className="text-center font-semibold text-xl mt-5">LogIn Page</p>
       <LogInForm></LogInForm>
     </div>
   );
@@ -18,23 +25,6 @@ function LogInForm() {
     email: "",
     password: "",
   });
-
-  //   useEffect(() => {
-  //     async function fetchLoggedInUser() {
-  //       const res = await fetch("http://localhost:5000/login");
-  //       const userExsist = await res.json();
-
-  //       if (!userExsist) {
-  //         console.error("No user exsists");
-  //         alert("No user exsists");
-  //       }
-
-  //       setLoggeduser(userExsist);
-  //       navigate("/userPizza");
-  //     }
-
-  //     fetchLoggedInUser();
-  //   }, [navigate]);
 
   function handleFormChange(e) {
     const { name, value } = e.target;
@@ -65,14 +55,14 @@ function LogInForm() {
     console.log(loggedUser);
 
     alert("login data sent successfully");
-    navigate("/userPizza");
-    // navigate("/");
-    // setFormData({
-    //   //reset fields
-    //   name: "",
-    //   email: "",
-    //   password: "",
-    // });
+    navigate("/");
+
+    //reset fields
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+    });
   }
 
   return (

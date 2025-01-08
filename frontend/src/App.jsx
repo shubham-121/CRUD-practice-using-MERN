@@ -10,13 +10,13 @@ export default function App() {
       <div className="mt-2 flex justify-end items-end space-x-3">
         <button
           onClick={() => navigate("/register")}
-          className="border-2 border-black w-[7vw] h-[5vh] mt-2 rounded-full bg-gray-500 "
+          className="border-2 border-black w-[100px] h-[40px] mt-2 mr-4 rounded-full bg-gray-500 "
         >
           Register
         </button>
         <button
           onClick={() => navigate("/login")}
-          className="border-2 border-black w-[7vw] h-[5vh] mt-2 rounded-full bg-gray-500 "
+          className="border-2 border-black w-[100px] h-[40px] mt-2 mr-5 rounded-full bg-gray-500 "
         >
           Login
         </button>
@@ -88,7 +88,8 @@ function RenderPizzas({ pizza }) {
       <ul>
         <li className="flex items-center justify-center">
           <img
-            className="max-h-[40vh] max-w-[40vw] min-w-[10vw] rounded-full"
+            // className="max-h-[40vh] max-w-[40vw] min-w-[10vw] rounded-full"
+            className="h-[200px] w-[200px] rounded-full object-cover"
             src={pizza.imagesrc}
           ></img>
         </li>

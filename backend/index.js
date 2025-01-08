@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
 
 //
@@ -8,6 +9,7 @@ const pizzas = require("./pizzas.json");
 const Pizza = require("./connection");
 const User = require("./user"); //user schema for authentication
 const { setUser, getUser } = require("./services/auth");
+const UserSession = require("./session");
 
 const app = express();
 // app.use(cors());
@@ -21,6 +23,7 @@ app.use(
 //middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 console.log(pizzas);
 
@@ -57,17 +60,17 @@ app.post("/addNewPizza", async (req, res) => {
     .json({ message: "Pizza added successfully", pizza: savedPizza });
 });
 
-//read custom piiza from DB
-app.get("/pizzas/userPizza", async (req, res) => {
-  const db_pizzas = await Pizza.find({});
+// //read custom piiza from DB
+// app.get("/pizzas/userPizza", async (req, res) => {
+//   const db_pizzas = await Pizza.find({});
 
-  if (!db_pizzas)
-    res.status(404).json({ message: "No Custom pizzas available in the DB" });
+//   if (!db_pizzas)
+//     res.status(404).json({ message: "No Custom pizzas available in the DB" });
 
-  res
-    .status(200)
-    .json({ message: "Custom pizzas sended", db_pizzas: db_pizzas });
-});
+//   res
+//     .status(200)
+//     .json({ message: "Custom pizzas sended", db_pizzas: db_pizzas });
+// });
 
 //delet custom pizza from db
 
@@ -163,11 +166,13 @@ app.post("/login", async (req, res) => {
 
   console.log(email, password);
 
+  //1- validate the input fields
   if (!email || !password)
     return res
       .status(400)
       .json({ message: "All fields are required for LoggingIn." });
 
+  //2-authenticate the user
   const loggedUser = await User.findOne({ email, password });
 
   if (!loggedUser) {
@@ -177,17 +182,111 @@ app.post("/login", async (req, res) => {
 
   console.log(loggedUser);
 
-  //create a session Id using uuid package
-  const sessionId = uuidv4();
-  console.log(sessionId);
-  setUser(sessionId, loggedUser); //map user and session id
-  res.cookie("uid", sessionId); //create a cookie for storing it to the server
+  //3- create Session for the user ( session id and expiry token)
+  const sessionToken = Math.random().toString(36).substring(2);
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24);
 
-  res
-    .status(200)
-    .json({ message: "User Successfully LoggedIn ", loggedUser: loggedUser });
+  const newSession = new UserSession({
+    userId: loggedUser._id,
+    sessionToken: sessionToken,
+    expiresAt: expiresAt,
+  });
 
-  // res.redirect("/userPizza");
+  //4- save the session in the DB
+  const isCreatedSession = await newSession.save();
+  console.log("USer session created successfully", isCreatedSession);
+
+  if (!isCreatedSession)
+    res.status(400).json({ message: "Cannot create the session for the user" });
+
+  //5- set the cookie to local storage
+  res.cookie("sessionToken", sessionToken, {
+    httpOnly: true, // Prevents client-side access to the cookie
+    expires: expiresAt, // Set cookie expiry time
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+    sameSite: "Strict", // Prevents CSRF attacks
+  });
+
+  //6- send the response to the user
+  res.status(200).json({
+    message: "USer session created successfully",
+    sessionCreated: isCreatedSession,
+    loggedUser: loggedUser,
+  });
+});
+
+//read custom piiza from DB (only for authenticated user only)
+app.get("/pizzas/userPizza", authenticateSession, async (req, res) => {
+  // console.log("After auth check", req);
+
+  try {
+    const db_pizzas = await Pizza.find({});
+
+    if (!db_pizzas)
+      res.status(404).json({ message: "No Custom pizzas available in the DB" });
+
+    res
+      .status(200)
+      .json({ message: "Custom pizzas sended", db_pizzas: db_pizzas });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+//authenticate the current user session
+async function authenticateSession(req, res, next) {
+  const sessionToken = req.cookies.sessionToken;
+  console.log("Session token is:", sessionToken);
+
+  if (!sessionToken)
+    res
+      .status(400)
+      .json({ message: "No active session token found, login again" });
+
+  //find the active user session in the DB by session token
+  try {
+    const user_session = await UserSession.findOne({ sessionToken });
+
+    if (!user_session) {
+      return res.status(401).json({ message: "Invalid session token" });
+    }
+
+    //Session expire check
+    if (Date.now() > user_session.expiresAt) {
+      // delete the expired session from the DB here
+      await UserSession.deleteOne({ sessionToken });
+
+      return res.status(401).json({ message: "Session expired" });
+    }
+
+    req.user = user_session;
+    next();
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+} //authenticate the session middleware
+
+//logout the user
+app.post("/logout", authenticateSession, async (req, res) => {
+  const sessionToken = req.cookies.sessionToken;
+
+  console.log("This is the logout token", sessionToken);
+  //delete session from browser
+  res.clearCookie("sessionToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+    sameSite: "Strict",
+  });
+
+  console.log("cookie cleareed from browser");
+
+  // delete session from DB
+  const deletedSession = await UserSession.deleteOne({ sessionToken });
+  console.log(deletedSession);
+
+  res.status(200).json({ message: "Session logged out and cookie cleared" });
 });
 
 //run server
@@ -195,3 +294,11 @@ const PORT = 5000;
 app.listen(PORT, () => {
   console.log("Backend Server is running at Port:", PORT);
 });
+
+//for setting the cookie
+//  res.cookie("sessionToken", sessionToken, {
+//    httpOnly: true,
+//    secure: process.env.NODE_ENV === "production", // Set to true in production
+//    sameSite: "Strict", // Prevent CSRF attacks
+//    expires: expiresAt, // Cookie expiration time
+//  });

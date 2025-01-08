@@ -12,22 +12,54 @@ export default function UserPizzas() {
 
 function CustomPizzas() {
   const [customPizza, setCustomPizza] = useState();
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function getCustomPizza() {
-      const res = await fetch("http://localhost:5000/pizzas/userPizza");
-      const data = await res.json();
+      try {
+        const res = await fetch("http://localhost:5000/pizzas/userPizza", {
+          method: "GET",
+          credentials: "include", //send cookies also with the data
+        });
+        const data = await res.json();
 
-      if (data) {
-        console.log(data);
-        setCustomPizza(data.db_pizzas);
+        if (data) {
+          console.log(data);
+          setCustomPizza(data.db_pizzas);
+        }
+      } catch (error) {
+        alert("Login first");
+        console.error("Login first, to access the custom pizzas", error);
       }
     }
     getCustomPizza();
   }, []);
 
+  //logout functionality
+  async function handleLogout() {
+    const res = await fetch("http://localhost:5000/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    const data = await res.json();
+
+    console.log(data);
+
+    //user log out here below
+    if (data.message === "Session logged out and cookie cleared") {
+      navigate("/login");
+      alert("Logged Out successfully");
+    }
+  }
+
   return (
     <div className="p-4">
+      <button
+        onClick={handleLogout}
+        className="border-2 mt-5 w-[5vw] hover:scale-105 font-semibold text-l border-black rounded-full bg-red-500"
+      >
+        Logout
+      </button>
       <p className="text-center font-semibold text-xl mb-4">
         Your pizzas are below:
       </p>
@@ -38,7 +70,7 @@ function CustomPizzas() {
           ))
         ) : (
           <p className="text-center text-gray-600">
-            No custom pizzas available currently.
+            No custom pizzas available currently. Login first
           </p>
         )}
       </div>
